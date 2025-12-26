@@ -1,0 +1,5 @@
+{
+  "name": "DSA Expert RAG Chat",
+  "description": "An interactive and visually appealing chat interface for a Retrieval-Augmented Generation (RAG) system specialized in Data Structures and Algorithms. Ask any DSA question and get an expert answer based on a knowledge base.",
+  "requestFramePermissions": []
+}
