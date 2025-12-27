@@ -1,9 +1,11 @@
+
 'use client';
 
 import React, { useState, useCallback } from 'react';
 import { ChatMessage } from '../types';
 import { Header } from '../components/Header';
 import { ChatInterface } from '../components/ChatInterface';
+import { getExpertAnswer } from '../services/ragService';
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -18,28 +20,21 @@ export default function Home() {
     if (!text.trim()) return;
 
     const userMessage: ChatMessage = { role: 'user', content: text };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    const history = [...messages];
+    setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: text, history: messages })
-      });
-
-      const data = await response.json();
+      // Use the robust ragService which handles missing keys/configs gracefully
+      const answer = await getExpertAnswer(text, history);
       
-      if (data.error) throw new Error(data.error);
-
-      const modelMessage: ChatMessage = { role: 'model', content: data.answer };
+      const modelMessage: ChatMessage = { role: 'model', content: answer };
       setMessages(prev => [...prev, modelMessage]);
     } catch (error) {
-      console.error("Error getting answer:", error);
+      console.error("Critical Runtime Error:", error);
       setMessages(prev => [...prev, {
         role: 'model',
-        content: "Sorry, I encountered an error. Please ensure your environment variables are set up in Vercel."
+        content: "I apologize, but I encountered a technical difficulty. Please check your internet connection and ensure your API keys are correctly configured."
       }]);
     } finally {
       setIsLoading(false);
@@ -47,7 +42,7 @@ export default function Home() {
   }, [messages]);
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col font-sans antialiased relative">
+    <div className="bg-gray-900 text-white min-h-screen flex flex-col font-sans antialiased relative overflow-hidden">
        <div 
         className="absolute top-0 left-0 w-full h-full z-0"
         style={{
@@ -55,13 +50,15 @@ export default function Home() {
           backgroundColor: '#111827'
         }}
       ></div>
-      <div className="relative z-10 flex flex-col h-screen w-full max-w-4xl mx-auto">
+      <div className="relative z-10 flex flex-col h-screen w-full max-w-4xl mx-auto shadow-2xl">
         <Header />
-        <ChatInterface 
-          messages={messages} 
-          isLoading={isLoading} 
-          onSendMessage={handleSendMessage} 
-        />
+        <div className="flex-grow overflow-hidden flex flex-col bg-gray-900/40 backdrop-blur-sm border-x border-gray-800">
+          <ChatInterface 
+            messages={messages} 
+            isLoading={isLoading} 
+            onSendMessage={handleSendMessage} 
+          />
+        </div>
       </div>
     </div>
   );
