@@ -1,10 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Ensure API Key is present. In production, this comes from Vercel Env Vars.
-const apiKey = process.env.API_KEY;
+// Initialize the GoogleGenAI client with the API key from environment variables.
+// Following the guideline to use the named parameter for apiKey.
+export const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-if (!apiKey) {
-  throw new Error("Missing API_KEY environment variable");
-}
-
-export const ai = new GoogleGenAI({ apiKey });
+/**
+ * Helper to get the AI client instance.
+ * Maintained for backward compatibility with ragService.ts.
+ */
+export const getAiClient = () => ai;

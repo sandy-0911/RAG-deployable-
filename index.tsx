@@ -1,3 +1,14 @@
-// This file is no longer the entry point in a Next.js App Router project.
-// Entry is handled by app/layout.tsx and app/page.tsx.
-export {};
+
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+
+const container = document.getElementById('root');
+if (container) {
+  const root = createRoot(container);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}

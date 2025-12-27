@@ -9,6 +9,7 @@ export async function POST(req: Request) {
     // 1. Query Transformation (Turn follow-up into standalone query)
     let standaloneQuery = question;
     if (history && history.length > 1) {
+      // Use ai.models.generateContent to transform the query.
       const transformResponse = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: [
@@ -19,7 +20,8 @@ export async function POST(req: Request) {
           systemInstruction: "You are a query rewriter. Output ONLY the standalone question.",
         },
       });
-      standaloneQuery = transformResponse.text.trim();
+      // Access the .text property directly (do not call as a function).
+      standaloneQuery = transformResponse.text?.trim() || question;
     }
 
     // 2. Retrieval (Get context from Pinecone)
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
 
     // 3. Grounded Generation
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview', // High reasoning for DSA
+      model: 'gemini-3-pro-preview', // High reasoning model for complex DSA tasks.
       contents: [
         ...history.map((m: any) => ({ role: m.role, parts: [{ text: m.content }] })),
         { role: 'user', parts: [{ text: question }] }
@@ -48,7 +50,8 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ answer: response.text });
+    // Extract text from the response using the .text property.
+    return NextResponse.json({ answer: response.text || "I was unable to generate a response at this time." });
 
   } catch (error: any) {
     console.error("RAG Error:", error);
